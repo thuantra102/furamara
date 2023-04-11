@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        .table {
+            /*margin-top: 0px !important;*/
+            border-radius: 150px !important;
+        }
+
+        .body {
+            display: flex;
+
+        }
+
+        .action {
+            flex: 2;
+            background-color: saddlebrown;
+
+        }
+
+        .action p {
+            color: yellow;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px auto;
+            padding: 5px;
+            border: solid 1px white;
+            width: 80%;
+
+        }
+
+        .data {
+            flex: 8;
+        }
+    </style>
+</head>
+<body>
+
+<header th:insert="~{home::header}"></header>
+<!--<nav class="navbar navbar-expand-lg  navbar-dark bg-primary">-->
+<!--    <div class="container-fluid">-->
+<!--        <div class="collapse navbar-collapse" id="navbarSupportedContent">-->
+<!--            <ul class="navbar-nav me-auto mb-2 mb-lg-0">-->
+<!--                <li class="nav-item">-->
+<!--                    <a  class="nav-link active" aria-current="page" th:href="@{/customer/save}">Add New Customer</a>-->
+<!--                </li>-->
+<!--            </ul>-->
+<!--            <ul class="navbar-nav me-auto mb-2 mb-lg-0">-->
+<!--                <li class="nav-item">-->
+<!--                    <a  class="nav-link active" aria-current="page" th:href="@{/customer/list}">Refresh</a>-->
+<!--                </li>-->
+<!--            </ul>-->
+<!--            <ul class="navbar-nav me-auto mb-2 mb-lg-0">-->
+<!--                <li class="nav-item">-->
+<!--                    <a  class="nav-link active" aria-current="page" th:href="@{/}">Go Home</a>-->
+<!--                </li>-->
+<!--            </ul>-->
+<!--            <form action="/customer" class="d-flex" method="get">-->
+<!--                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="nameSearch">-->
+<!--                <button class="btn btn-outline-success" type="submit">Search</button>-->
+<!--            </form>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<div class="body">
+    <div class="action">
+        <p>
+            <button data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-primary">CREATE</button>
+        </p>
+        <p>DETAIL</p>
+        <p>REFRESH</p>
+        <p>DELETE</p>
+
+    </div>
+    <div class="data">
+        <table border="1" class="table table-success table-striped" style="width: 100%;">
+            <tr>
+                <th>STT</th>
+                <th>Employee Name</th>
+                <th>Date Of Birth</th>
+                <th>Gender</th>
+                <th>Identity Card</th>
+                <th>Phone Number</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Customer Type</th>
+                <th>Edit</th>
+                <th>Delete</th>
+
+            </tr>
+            <tr th:each="customer,loop :${customerList}">
+                <td th:text="${loop.count}"></td>
+                <td th:text="${customer.name}" class="name"></td>
+                <td th:text="${customer.dateOfBirth}"></td>
+                <td th:if="${customer.gender==true}" th:text="Male"></td>
+                <td th:if="${customer.gender==false}" th:text="Female"></td>
+                <td th:text="${customer.identityCard}"></td>
+                <td th:text="${customer.phoneNumber}"></td>
+                <td th:text="${customer.email}"></td>
+                <td th:text="${customer.address}"></td>
+                <td th:text="${customer.customerType.name}"></td>
+                <td><a th:onclick="'edit('+${customer.id}+')'"
+                       class="btn btn-primary"
+                       data-bs-toggle="modal" data-bs-target="#exampleModal"
+                >Edit</a></td>
+                <td><a th:onclick="deleteCus([[${customer.id}]],[[${customer.name}]])"  class="btn btn-danger">Delete</a></td>
+
+            </tr>
+        </table>
+        <span>
+        <a th:if="${customerList.hasPrevious()}"
+           th:href="@{/customer/(page = ${customerList.number - 1},inputSearch=${nameSearch})}">Previous</a>
+    </span>
+        <span style="color: red" th:each="pageNo: ${#numbers.sequence(0,customerList.totalPages - 1)}">
+        <a th:href="@{/customer/(page = ${pageNo},inputSearch=${nameSearch})}" th:text="${pageNo}"></a>
+    </span>
+        <span>
+        <a th:if="${customerList.hasNext()}"
+           th:href="@{/customer/(page = ${customerList.number +1},inputSearch=${nameSearch})}">Next</a>
+    </span>
+    </div>
+</div>
+<footer th:include="~{home::footer}">
+
+</footer>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form>
+            <div class="modal-content">
+                <input id="id" hidden type="number">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Customer Info</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="name" class="form-control" required>
+                        <span style="color: red" id="nameErr"></span>
+
+                    </div>
+                    <div class="form-group">
+                        <label>Date Of Birth</label>
+                        <input type="date" id="birthDate" class="form-control" required>
+                        <span style="color: red" id="dateErr"></span>
+
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <div id="gender" name="gender">
+                            <input name="gender" id="male" type="radio" th:text="Male" value="true">
+                            <input name="gender" id="female" type="radio" th:text="Female" checked value="false">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Identity Card</label>
+                        <input type="text" id="identity" class="form-control" required>
+                        <span style="color: red" id="identityErr"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="phoneNumber" class="form-control" required>
+                        <span style="color: red" id="phoneNumberErr"></span>
+
+                    </div>
+                    <div class="form-group">
+                        <label>ADRESS</label>
+                        <input type="text" id="address" class="form-control" required>
+                        <span style="color: red" id="addressErr"></span>
+
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" id="email" class="form-control" required>
+                        <span style="color: red" id="emailErr"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Customer Type</label>
+                        <select id="customerType">
+                            <option value="1">Diamond</option>
+                            <option value="2">Platinium</option>
+                            <option value="3">Gold</option>
+                            <option value="4">Silver</option>
+                            <option value="5">Member</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="close">Close</button>
+                    <button type="submit" class="btn btn-primary" id="save">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+<script>
+    document.getElementById("save").addEventListener("click", function (e) {
+        e.preventDefault();
+        saveAjax();
+
+    })
+    document.getElementById("close").addEventListener("click", function () {
+        deleteData()
+    })
+
+    function saveAjax() {
+        let id = document.getElementById("id").value;
+        let name = document.getElementById("name").value;
+        let birthDate = document.getElementById("birthDate").value;
+        let gender = document.querySelector("input[type='radio'][name=gender]:checked").value;
+        let identity = document.getElementById("identity").value;
+        let phoneNumber = document.getElementById("phoneNumber").value;
+        let email = document.getElementById("email").value;
+        let customerType = document.getElementById("customerType");
+        let address = document.getElementById("address").value;
+        let customerObject = {
+            id: id,
+            name: name,
+            dateOfBirth: birthDate,
+            gender: gender,
+            identityCard: identity,
+            phoneNumber: phoneNumber,
+            address: address,
+            email: email,
+            customerType: {
+                id: customerType.value,
+                name: customerType.options[customerType.selectedIndex].text
+            }
+        };
+        $.ajax({
+
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "POST",
+            data: JSON.stringify(customerObject),
+            url: "/customerAPI/admin/save",
+            success: function (result   ) {
+                deleteData()
+                window.location.reload()
+            },
+            error: function (event) {
+                if (event.status == 400) {
+                    console.log(event.responseJSON)
+                    document.getElementById("emailErr").innerText = event.responseJSON.email == undefined ? "" : event.responseJSON.email;
+                    document.getElementById("phoneNumberErr").innerText = event.responseJSON.phoneNumber == undefined ? "" : event.responseJSON.phoneNumber;
+                    document.getElementById("nameErr").innerText = event.responseJSON.name == undefined ? "" : event.responseJSON.name;
+                    document.getElementById("identityErr").innerText = event.responseJSON.identityCard == undefined ? "" : event.responseJSON.identityCard;
+                    document.getElementById("dateErr").innerText = event.responseJSON.dateOfBirth == undefined ? "" : event.responseJSON.dateOfBirth;
+                    document.getElementById("addressErr").innerText = event.responseJSON.address == undefined ? "" : event.responseJSON.address;
+                }
+            }
+
+        })
+    }
+
+    function edit(id) {
+        $.ajax({
+            url: "/customerAPI/admin/find/" + id,
+            type: "get",
+            contentType: "application/json",
+            dataType: 'json',
+            success: function (data) {
+                console.log(data.name)
+                    // console.log(data.responseJSON.address);
+                document.getElementById("id").value = data.id;
+                document.getElementById("name").value = data.name;
+                document.getElementById("birthDate").value = data.dateOfBirth;
+                if(data.gender == true) {
+                    console.log("true")
+                    document.getElementById("male").checked = true;
+                } else  {
+                    console.log("false")
+                    document.getElementById("female").checked = true;
+
+                }
+                document.getElementById("identity").value = data.identityCard;
+                document.getElementById("phoneNumber").value = data.phoneNumber;
+                document.getElementById("email").value = data.email;
+                // // let customerType = document.getElementById("customerType");
+                document.getElementById("customerType").value = data.customerType.id;
+                document.getElementById("address").value = data.address;
+
+            }
+        })
+    }
+    function deleteCus(id,name) {
+       let a =  confirm("Do you want to delete id = " + id + " name = " + name );
+       if(a) {
+           window.location.href= "http://localhost:8081/customer/delete/?id=" + id;
+       }
+
+    }
+    function deleteData() {
+        document.getElementById("id").value ="";
+        document.getElementById("name").value = "";
+        document.getElementById("birthDate").value = "";
+        document.getElementById("identity").value = "";
+        document.getElementById("phoneNumber").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("customerType").value = "";
+        document.getElementById("address").value = "";
+    }
+</script>
+</body>
+</html>
